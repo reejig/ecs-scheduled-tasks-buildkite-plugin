@@ -92,6 +92,8 @@ function set_event_target() {
       exit 0
     fi
 
+    echo $task_arn
+
     ecs_target_definition_json=$(echo "${ecs_target_definition_json}" | jq --arg TASK_ARN $task_arn '.EcsParameters.TaskDefinitionArn=$TASK_ARN')
     parsed_target_definition_json=$(jq -s '.[0].Targets[0] += .[1] | .[0]' <<< "${target_definition_template_json} ${ecs_target_definition_json}")
 
@@ -112,7 +114,7 @@ if [[ ${rule_status} != "ENABLED" ]]; then
   exit 1
 fi
 
-set_event_target "${events_rule_name}" $task_arn
+set_event_target "${events_rule_name}" ${task_arn}
 target_count=$(aws events list-targets-by-rule --rule "${events_rule_name}" --query 'length(Targets[*])')
 if [[ ${target_count} -gt 0 ]]; then
   echo "Events rule created, and target set successfully 🚀"
