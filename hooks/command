@@ -84,6 +84,7 @@ function set_event_target() {
     local ecs_target_definition_json=$(cat "${target_definition}")
     local rule_name=$1
     local task_arn=$2
+    local target_definition_template_json=$(cat "${DIR}/../lib/target-definition.json")
 
     local current_arn=$(aws events list-targets-by-rule --rule "${rule_name}" --query 'Targets[0].Arn' --output text)
     if [[ $current_arn == "${task_arn}" ]]; then
@@ -91,10 +92,13 @@ function set_event_target() {
       exit 0
     fi
 
+    ecs_target_definition_json=$(echo "${ecs_target_definition_json}" | jq --arg TASK_ARN "${task_arn}" '.TaskDefinitionArn=$TASK_ARN')
+    parsed_target_definition_json=$(echo "${target_definition_template_json}" | jq -s '.[0].Targets[0] + .[1]' "${target_definition_template_json}" "<(echo ${ecs_target_definition_json})")
+
     echo "--- Setting Events rule target"
     aws events put-targets \
     --rule "${rule_name}" \
-    --cli-input-json "${ecs_target_definition_json}"
+    --cli-input-json "${parsed_target_definition_json}"
 }
 
 register_task_definition
