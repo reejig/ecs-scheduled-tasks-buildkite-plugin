@@ -39,7 +39,7 @@ function register_task_definition() {
     exit "${register_exit_code}"
   fi
 
-  task_arn=$(jq '.taskDefinition.taskDefinitionArn' <<< "$json_output")
+  task_arn=$(jq --raw-output '.taskDefinition.taskDefinitionArn' <<< "$json_output")
   task_revision=$(jq '.taskDefinition.revision' <<< "$json_output")
   echo "Registered ${task_family}:${task_revision}"
 }
@@ -58,17 +58,17 @@ function create_event_rule() {
     return
   fi
 
-  create_event_command="aws events put-rule --name ${rule_name} --description ${description} --role_arn ${role_arn}"
+  create_event_command="aws events put-rule --name ${rule_name} --description ${description} --role-arn ${role_arn}"
 
   arg_check=1
 
   if [[ -n "${event_pattern}" ]]; then
-      create_event_command+=" --event_pattern \"${event_pattern}\""
+      create_event_command+=" --event-pattern \"${event_pattern}\""
       arg_check=0
   fi
 
   if [[ -n "${schedule_expression}" ]]; then
-      create_event_command+=" --schedule_expression \"${schedule_expression}\""
+      create_event_command+=" --schedule-expression \"${schedule_expression}\""
       arg_check=0
   fi
 
@@ -92,8 +92,8 @@ function set_event_target() {
       exit 0
     fi
 
-    ecs_target_definition_json=$(echo "${ecs_target_definition_json}" | jq --arg TASK_ARN "${task_arn}" '.TaskDefinitionArn=$TASK_ARN')
-    parsed_target_definition_json=$(jq -s '.[0].Targets[0] + .[1]' <<< "${target_definition_template_json}" <<< "${ecs_target_definition_json}")
+    ecs_target_definition_json=$(echo "${ecs_target_definition_json}" | jq --arg TASK_ARN $task_arn '.EcsParameters.TaskDefinitionArn=$TASK_ARN')
+    parsed_target_definition_json=$(jq -s '.[0].Targets[0] += .[1] | .[0]' <<< "${target_definition_template_json} ${ecs_target_definition_json}")
 
     echo "--- Setting Events rule target"
     aws events put-targets \
