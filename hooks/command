@@ -92,11 +92,8 @@ function set_event_target() {
       exit 0
     fi
 
-    echo $target_definition_template_json
-
     ecs_target_definition_json=$(echo "${ecs_target_definition_json}" | jq --arg TASK_ARN $task_arn '.EcsParameters.TaskDefinitionArn=$TASK_ARN')
-    echo $ecs_target_definition_json
-    parsed_target_definition_json=$(jq -s '.[0].Targets[0] += .[1] | .[0]' <<< "${ecs_target_definition_json}" <<< "${target_definition_template_json}")
+    parsed_target_definition_json=$(jq -s '.[0].Targets[0] += .[1] | .[0]' <<< "${ecs_target_definition_json} ${target_definition_template_json}")
 
     echo "$parsed_target_definition_json"
 
