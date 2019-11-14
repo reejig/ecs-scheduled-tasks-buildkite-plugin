@@ -51,8 +51,6 @@ function create_event_rule() {
   local schedule_expression=$4
   local event_pattern=$5
 
-  echo "$1 $2 $3 $4 $5"
-
   local json_output=$(aws events describe-rule --name "${rule_name}")
   local rule_status=$(jq -r '.State' <<< "${json_output}")
   local current_role=$(jq -r '.RoleArn' <<< "${json_output}")
@@ -79,8 +77,6 @@ function create_event_rule() {
     exit 1
   fi
 
-  echo "${create_event_command}"
-
   eval "${create_event_command}"
 }
 
@@ -98,6 +94,8 @@ function set_event_target() {
 
     ecs_target_definition_json=$(echo "${ecs_target_definition_json}" | jq --arg TASK_ARN "${task_arn}" '.TaskDefinitionArn=$TASK_ARN')
     parsed_target_definition_json=$(jq -s '.[0].Targets[0] + .[1]' <<< "${target_definition_template_json}" <<< "${ecs_target_definition_json}")
+
+    echo $parsed_target_definition_json
 
     echo "--- Setting Events rule target"
     aws events put-targets \
