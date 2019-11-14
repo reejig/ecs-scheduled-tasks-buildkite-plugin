@@ -60,17 +60,17 @@ function create_event_rule() {
     return
   fi
 
-  create_event_command="aws events put-rule --name ${rule_name} --description ${description} --role_arn ${role_arn}"
+  create_event_command="aws events put-rule --name ${rule_name} --description ${description} --role-arn ${role_arn}"
 
   arg_check=1
 
   if [[ -n "${event_pattern}" ]]; then
-      create_event_command+=" --event_pattern \"${event_pattern}\""
+      create_event_command+=" --event-pattern \"${event_pattern}\""
       arg_check=0
   fi
 
   if [[ -n "${schedule_expression}" ]]; then
-      create_event_command+=" --schedule_expression \"${schedule_expression}\""
+      create_event_command+=" --schedule-expression \"${schedule_expression}\""
       arg_check=0
   fi
 
@@ -78,6 +78,8 @@ function create_event_rule() {
     echo "+++ You must specify either --schedule-expression or --event-pattern"
     exit 1
   fi
+
+  echo "${create_event_command}"
 
   eval "${create_event_command}"
 }
