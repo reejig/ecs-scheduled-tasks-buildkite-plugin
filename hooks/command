@@ -41,7 +41,7 @@ function register_task_definition() {
 
   echo $json_output
 
-  task_arn=$(jq '.taskDefinition.taskDefinitionArn' <<< "$json_output")
+  task_arn=$(jq --raw-output '.taskDefinition.taskDefinitionArn' <<< "$json_output")
   task_revision=$(jq '.taskDefinition.revision' <<< "$json_output")
   echo "Registered ${task_family}:${task_revision}"
 }
@@ -114,7 +114,7 @@ if [[ ${rule_status} != "ENABLED" ]]; then
   exit 1
 fi
 
-set_event_target "${events_rule_name}" ${task_arn}"
+set_event_target "${events_rule_name}" "${task_arn}"
 target_count=$(aws events list-targets-by-rule --rule "${events_rule_name}" --query 'length(Targets[*])')
 if [[ ${target_count} -gt 0 ]]; then
   echo "Events rule created, and target set successfully 🚀"
