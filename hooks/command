@@ -51,7 +51,7 @@ function create_event_rule() {
   local schedule_expression=$4
   local event_pattern=$5
 
-  local json_output=$(aws events describe-rule --name "${rule_name}")
+  local json_output=$(aws events describe-rule --name "${rule_name}" || echo "{}")
   local rule_status=$(jq -r '.State' <<< "${json_output}")
   local current_role=$(jq -r '.RoleArn' <<< "${json_output}")
   if [[ ${rule_status} == "ENABLED" ]] && [[ ${current_role} == "${role_arn}" ]]; then
