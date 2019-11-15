@@ -3,6 +3,7 @@ set -euo pipefail
 
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
+cluster_arn=${BUILDKITE_PLUGIN_ECS_SCHEDULED_TASKS_CLUSTER_ARN?}
 task_family=${BUILDKITE_PLUGIN_ECS_SCHEDULED_TASKS_TASK_FAMILY?}
 task_definition=${BUILDKITE_PLUGIN_ECS_SCHEDULED_TASKS_TASK_DEFINITION?}
 task_role_arn=${BUILDKITE_PLUGIN_ECS_SCHEDULED_TASKS_TASK_ROLE_ARN:-""}
@@ -92,8 +93,10 @@ function set_event_target() {
       exit 0
     fi
 
-    ecs_target_definition_json=$(echo "${ecs_target_definition_json}" | jq --arg TASK_ARN $task_arn '.EcsParameters.TaskDefinitionArn=$TASK_ARN')
-    parsed_target_definition_json=$(jq -s '.[0].Targets[0] += .[1] | .[0]' <<< "${target_definition_template_json} ${ecs_target_definition_json}")
+    ecs_target_definition_json=$(echo "${ecs_target_definition_json}" | jq --arg TASK_ARN "${task_arn}" '.EcsParameters.TaskDefinitionArn=$TASK_ARN')
+    parsed_target_definition_json=$(jq --arg TASK_ARN "${task_arn}" --arg TASK_ARN "${cluster_arn}" -s '.[1].Arn = $CLUSTER_ARN | .[1].RoleArn = $TASK_ARN | .[0].Targets[0] += .[1] |  .[0]' <<< "${target_definition_template_json} ${ecs_target_definition_json}")
+
+    echo "$parsed_target_definition_json"
 
     echo "--- Setting Events rule target"
     aws events put-targets \

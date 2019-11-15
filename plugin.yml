@@ -6,6 +6,8 @@ requirements:
   - jq
 configuration:
   properties:
+    cluster-arn:
+      type: string
     task-family:
       type: string
     task-definition:
@@ -27,6 +29,7 @@ configuration:
     event-pattern:
       type: string
   required:
+    - cluster-arn
     - task-family
     - task-definition
     - events-rule-name
